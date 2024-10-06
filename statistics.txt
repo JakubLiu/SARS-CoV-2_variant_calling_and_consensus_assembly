@@ -1,0 +1,56 @@
+# Analyzing bam file
+
+
+# Average Coverage Depth
+samtools depth minimap2.illumina.bam | awk '{sum+=$3} END { print "Average coverage depth:",sum/NR}'
+
+
+# Median Coverage Depth
+samtools depth minimap2.illumina.bam | awk '{all[NR]=$3} END {print "Median:", all[int(NR/2)]}'
+
+
+# Coverage Depth Histogrma
+samtools depth minimap2.illumina.bam > depth.txt
+# Via Python
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Load the depth data
+depth_data = pd.read_csv('depth.txt', sep='\t', header=None, names=['Chromosome', 'Position', 'Depth'])
+
+# Plot histogram of depths
+plt.figure(figsize=(10, 6))
+plt.hist(depth_data['Depth'], bins=50, color='blue', edgecolor='black', alpha=0.7)
+
+# Customize the plot
+plt.title('Histogram of Coverage Depth')
+plt.xlabel('Depth')
+plt.ylabel('Frequency')
+plt.yscale('log')  # Optional: Set y-axis to log scale if there are large differences in frequencies
+plt.grid(True)
+
+# Show the plot
+plt.show()
+
+
+# Check for not covered bases
+samtools depth -a minimap2.illumina.bam | awk '$3 == 0'
+
+
+# General Mapping Summary
+samtools stats minimap2.illumina.bam > stats.txt
+grep ^SN stats.txt
+
+ 
+
+
+# Analyzing Consensus Fasta
+
+# Check for ambiguous calls
+grep -v ">" illumina.fasta | grep -o "N" | wc -l
+
+
+# Sequence Length
+grep -v ">" illumina.fasta | awk '{ total += length($0) } END { print total }'
+
+
